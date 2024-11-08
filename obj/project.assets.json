@@ -2890,19 +2890,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\HASBY-PC\\.nuget\\packages\\": {}
+    "C:\\Users\\SABIQXS\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "F:\\CODE\\C#\\DotnetAPI\\DotnetAPI.csproj",
+      "projectUniqueName": "F:\\CODE\\C#\\DotNetAPI\\DotnetAPI.csproj",
       "projectName": "DotnetAPI",
-      "projectPath": "F:\\CODE\\C#\\DotnetAPI\\DotnetAPI.csproj",
-      "packagesPath": "C:\\Users\\HASBY-PC\\.nuget\\packages\\",
-      "outputPath": "F:\\CODE\\C#\\DotnetAPI\\obj\\",
+      "projectPath": "F:\\CODE\\C#\\DotNetAPI\\DotnetAPI.csproj",
+      "packagesPath": "C:\\Users\\SABIQXS\\.nuget\\packages\\",
+      "outputPath": "F:\\CODE\\C#\\DotNetAPI\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\HASBY-PC\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\SABIQXS\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -2910,6 +2910,7 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
