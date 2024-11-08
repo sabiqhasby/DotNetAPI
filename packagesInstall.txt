@@ -1,0 +1,3 @@
+dapper
+automapper
+Microsoft.Data.SqlClient
