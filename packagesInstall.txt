@@ -1,3 +1,7 @@
 dapper
 automapper
 Microsoft.Data.SqlClient
+
+Microsoft.EntityFrameworkCore
+Microsoft.EntityFrameworkCore.Relational
+Microsoft.EntityFrameworkCore.SqlServer
