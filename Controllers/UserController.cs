@@ -156,6 +156,96 @@ public class UserController : ControllerBase
 
    }
 
+   [HttpGet("UserSalary")]
+   public IEnumerable<UserSalary> GetUserSalary()
+   {
+      string sql = @"
+         SELECT 
+            [UserId],
+            [Salary],
+            [AvgSalary]
+         FROM TutorialAppSchema.UserSalary";
+
+      IEnumerable<UserSalary> userSalary = _dapper.LoadData<UserSalary>(sql);
+      return userSalary;
+   }
+
+   [HttpGet("UserSalary/{userId}")]
+   public UserSalary GetSingleUserSalary(int userId)
+   {
+      string sql = @"
+         SELECT 
+            [UserId],
+            [Salary],
+            [AvgSalary]
+         FROM TutorialAppSchema.UserSalary
+         WHERE UserId = " + userId.ToString();
+
+      UserSalary userSalary = _dapper.LoadDataSingle<UserSalary>(sql);
+      return userSalary;
+   }
+
+   [HttpPut("UserSalary")]
+   public async Task<IActionResult> EditUserSalary(UserSalary userSalary)
+   {
+      string sql = @"
+         UPDATE TutorialAppSchema.UserSalary
+         SET 
+            [Salary] = @Salary,
+         WHERE 
+            UserSalary.UserId = @UserId";
+
+      var parameters = new
+      {
+         userSalary.Salary,
+         userSalary.UserId
+      };
+      //jalankan sql
+      bool success = await _dapper.ExecuteSqlAsync(sql, parameters);
+      if (success)
+      {
+         return Ok();
+      }
+      throw new Exception("Failed to Update UserSalary");
+   }
+
+   [HttpPost("UserSalary")]
+   public async Task<IActionResult> AddUserSalary(UserSalary userSalary)
+   {
+      string sql = @"
+         INSERT INTO TutorialAppSchema.UserSalary(
+             [UserId],
+             [Salary]
+         ) VALUES (
+             @UserId,
+             @Salary
+         )";
+
+      var parameters = new
+      {
+         userSalary.UserId,
+         userSalary.Salary,
+      };
+      //jalankan sql
+      bool success = await _dapper.ExecuteSqlWithRowCountAsync(sql, parameters) > 0;
+      if (success)
+      {
+         return Ok(userSalary);
+      }
+      throw new Exception("Failed to Insert UserSalary");
+   }
+
+   [HttpDelete("UserSalary/{userId}")]
+   public IActionResult deleteUserSalaryByUserId(int userId)
+   {
+      string sql = "DELETE FROM TutorialAppSchema.UserSalary WHERE UserId=" + userId.ToString();
+
+      if (_dapper.ExecuteSql(sql))
+      {
+         return Ok();
+      }
+      throw new Exception("Failed to Delete UserSalary");
+   }
 }
 
 
