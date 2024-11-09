@@ -20,6 +20,8 @@ public class UserEFController : ControllerBase
         _mapper = new Mapper(new MapperConfiguration(cfg =>
         {
             cfg.CreateMap<UserToAddDto, User>();
+            cfg.CreateMap<UserSalary, UserSalary>().ReverseMap();
+            cfg.CreateMap<UserJobInfo, UserJobInfo>().ReverseMap();
         }));
     }
 
@@ -132,22 +134,29 @@ public class UserEFController : ControllerBase
     [HttpPut("UserSalary")]
     public IActionResult UpdateUserSalary(UserSalary userSalary)
     {
-        UserSalary? dbUserSalary = _entityFramework.UserSalary.Where(u => u.UserId == userSalary.UserId)
-            .FirstOrDefault();
+        //UserSalary? dbUserSalary = _entityFramework.UserSalary
+        //    .Where(u => u.UserId == userSalary.UserId)
+        //    .FirstOrDefault();
+        UserSalary? dbUserSalary = _entityFramework.UserSalary
+            .SingleOrDefault(u => u.UserId == userSalary.UserId);
 
-        if (dbUserSalary != null)
+        if (dbUserSalary == null)
         {
-            dbUserSalary.Salary = userSalary.Salary;
-
-            bool success = _entityFramework.SaveChanges() > 0;
-            if (success)
-            {
-                return Ok();
-            }
-            throw new Exception("Failed to Update UserSalary");
-
+            return NotFound("UserSalary not found.");
         }
-        throw new Exception("Updating UserSalary....Something went wrong");
+
+
+        //dbUserSalary.Salary = userSalary.Salary;
+        _mapper.Map(userSalary, dbUserSalary);
+
+        bool success = _entityFramework.SaveChanges() > 0;
+        if (success)
+        {
+            return Ok();
+        }
+        throw new Exception("Failed to Update UserSalary");
+
+
     }
 
     [HttpPost("UserSalary")]
@@ -180,5 +189,82 @@ public class UserEFController : ControllerBase
         }
         throw new Exception("Deleting UserSalary... Ups something went wrong!");
     }
-}
 
+    [HttpGet("UserJobInfo")]
+    public IEnumerable<UserJobInfo> GetUserJobs()
+    {
+        IEnumerable<UserJobInfo> userJobInfos = _entityFramework.UserJobInfo.ToList();
+        return userJobInfos;
+    }
+
+    [HttpGet("UserJobInfo/{userId}")]
+    public UserJobInfo GetUserJobsSingle(int userId)
+    {
+        UserJobInfo? dbUserJobInfo = _entityFramework.UserJobInfo
+            .Where(u => u.UserId == userId)
+            .FirstOrDefault();
+
+        if (dbUserJobInfo != null)
+        {
+            return dbUserJobInfo;
+        }
+        throw new Exception("Failed to Get UserJobInfo");
+    }
+
+    [HttpPut("UserJobInfo")]
+    public IActionResult EditUserJobInfo(UserJobInfo userJobInfo)
+    {
+        //UserJobInfo? userJob = _entityFramework.UserJobInfo
+        //    .Where(u => u.UserId == userJobInfo.UserId)
+        //    .FirstOrDefault();
+        UserJobInfo? userJob = _entityFramework.UserJobInfo.SingleOrDefault(u => u.UserId == userJobInfo.UserId);
+
+
+        if (userJob != null)
+        {
+            //userJob.JobTitle = userJobInfo.JobTitle;
+            //userJob.Department = userJobInfo.Department;
+
+            _mapper.Map(userJobInfo, userJob);
+
+            bool success = _entityFramework.SaveChanges() > 0;
+            if (success) { return Ok(userJob); }
+            throw new Exception("Failed to Edit UserJobInfo");
+        }
+        throw new Exception("Failed to Edit UserJobInfo");
+    }
+
+    [HttpPost("UserJobInfo")]
+    public IActionResult AddUserJobInfo(UserJobInfo userJobInfo)
+    {
+        _entityFramework.Add(userJobInfo);
+        bool success = _entityFramework.SaveChanges() > 0;
+        if (success) { return Ok(userJobInfo); }
+        throw new Exception("Failed to insert UserJobInfo");
+    }
+
+    [HttpDelete("UserJobInfo/{userId}")]
+    public IActionResult DeleteUserJobInfo(int userId)
+    {
+        //UserJobInfo? userJob = _entityFramework.UserJobInfo
+        //    .Where(u => u.UserId == userId)
+        //    .FirstOrDefault();
+
+        //Cari terlebih dahulu, jika tidak di temukan return null.
+        UserJobInfo? userJob = _entityFramework.UserJobInfo.SingleOrDefault(u => u.UserId == userId);
+
+        if (userJob != null)
+        {
+            _entityFramework.Remove(userJob);
+            bool success = _entityFramework.SaveChanges() > 0;
+            if (success) { return Ok(); }
+            throw new Exception("Failed to Delete UserJobInfo");
+        }
+
+        throw new Exception("Deleting...Something when wrong in UserJobInfo!");
+
+    }
+
+
+
+}
