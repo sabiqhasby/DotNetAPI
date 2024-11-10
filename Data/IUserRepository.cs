@@ -8,7 +8,8 @@ namespace DotnetAPI.Data
         public void AddEntity<T>(T entityToAdd);
         public void RemoveEntity<T>(T entityToRemove);
 
-        public IEnumerable<User> GetUsers();
+        //public IEnumerable<User> GetUsers();
+        public Task<IEnumerable<User>> GetUsers();
         public IEnumerable<UserSalary> GetSalaries();
         public IEnumerable<UserJobInfo> GetJobInfos();
 

@@ -1,4 +1,5 @@
 ﻿using DotnetAPI.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DotnetAPI.Data
 {
@@ -31,11 +32,17 @@ namespace DotnetAPI.Data
                 _entityFramework.Remove(entityToRemove);
             }
         }
-        public IEnumerable<User> GetUsers()
+        //public IEnumerable<User> GetUsers()
+        //{
+        //    //LOAD DATA USERS
+        //    IEnumerable<User> users = _entityFramework.Users.ToList();
+        //    return users;
+        //} 
+        
+        public async Task<IEnumerable<User>> GetUsers()
         {
             //LOAD DATA USERS
-            IEnumerable<User> users = _entityFramework.Users.ToList();
-            return users;
+            return await _entityFramework.Users.ToListAsync();
         }
 
         public IEnumerable<UserSalary> GetSalaries()

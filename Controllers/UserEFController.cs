@@ -30,11 +30,18 @@ public class UserEFController : ControllerBase
     }
 
     [HttpGet("GetUsers")]
-    public IEnumerable<User> GetUsers()
+    //public IEnumerable<User> GetUsers()
+    //{
+    //    //LOAD DATA USERS
+    //    IEnumerable<User> users = _userRepository.GetUsers();
+    //    return users;
+    //}  
+    
+    public async Task<IEnumerable<User>> GetUsers()
     {
         //LOAD DATA USERS
-        IEnumerable<User> users = _userRepository.GetUsers();
-        return users;
+       return await _userRepository.GetUsers();
+        
     }
 
     [HttpGet("GetSingleUser/{userId}")]
@@ -267,7 +274,7 @@ public class UserEFController : ControllerBase
     {
         //_entityFramework.Add(userJobInfo);
         _userRepository.AddEntity(userJobInfo);
-        bool success = _entityFramework.SaveChanges() > 0;
+        bool success = _userRepository.SaveChanges();
         if (success) { return Ok(userJobInfo); }
         throw new Exception("Failed to insert UserJobInfo");
     }
