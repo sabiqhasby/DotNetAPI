@@ -1,4 +1,7 @@
 using DotnetAPI.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,22 +14,39 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors((opt) =>
 {
-    opt.AddPolicy("DevCors", (corsBuilder) =>
+   opt.AddPolicy("DevCors", (corsBuilder) =>
+   {
+      corsBuilder.WithOrigins("http://localhost:4200", "http://localhost:3000", "http://localhost:8000")
+      .AllowAnyMethod()
+      .AllowAnyHeader()
+      .AllowCredentials();
+   });
+
+   opt.AddPolicy("ProdCors", (corsBuilder) =>
+   {
+      corsBuilder.WithOrigins("https://myproductionsite.com")
+      .AllowAnyMethod()
+      .AllowAnyHeader()
+      .AllowCredentials();
+   });
+});
+
+string? tokenKeyString = builder.Configuration.GetSection("AppSettings:TokenKey").Value;
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        corsBuilder.WithOrigins("http://localhost:4200", "http://localhost:3000", "http://localhost:8000")
-       .AllowAnyMethod()
-       .AllowAnyHeader()
-       .AllowCredentials();
+       options.TokenValidationParameters = new TokenValidationParameters()
+       {
+          ValidateIssuerSigningKey = true,
+          IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                   tokenKeyString != null ? tokenKeyString : ""
+               )),
+          ValidateIssuer = false,
+          ValidateAudience = false
+       };
     });
 
-    opt.AddPolicy("ProdCors", (corsBuilder) =>
-    {
-        corsBuilder.WithOrigins("https://myproductionsite.com")
-       .AllowAnyMethod()
-       .AllowAnyHeader()
-       .AllowCredentials();
-    });
-});
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
@@ -35,16 +55,18 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseCors("DevCors");
-    app.UseSwagger();
-    app.UseSwaggerUI();
+   app.UseCors("DevCors");
+   app.UseSwagger();
+   app.UseSwaggerUI();
 }
 else
 {
-    app.UseCors("ProdCors");
-    app.UseHttpsRedirection();
+   app.UseCors("ProdCors");
+   app.UseHttpsRedirection();
 }
 
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 //app.MapGet("/weatherforecast", () =>
