@@ -79,6 +79,27 @@ namespace DotnetAPI.Controllers
          return _dapper.LoadData<Post>(sql);
       }
 
+      [HttpGet("PostBySearch/{searchParam}")]
+      public async Task<IEnumerable<Post>> PostsBySearch(string searchParam)
+      {
+         string sql = @"
+             SELECT [PostId],
+                    [UserId],
+                    [PostTitle],
+                    [PostContent],
+                    [PostCreated],
+                    [PostUpdated] 
+                FROM TutorialAppSchema.Posts
+                  WHERE PostTitle LIKE @SearchPattern
+                   OR PostContent LIKE @SearchPattern";
+
+
+         return await _dapper.LoadDataAsync<Post>(sql, new
+         {
+            SearchPattern = "%" + searchParam + "%"
+         });
+      }
+
       [HttpPost("Post")]
       public async Task<IActionResult> AddPost(PostToAddDto postToAdd)
       {
