@@ -1,7 +1,12 @@
+using DotnetAPI.Data;
+using DotnetAPI.Dtos;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace DotnetAPI.Helpers
@@ -9,9 +14,13 @@ namespace DotnetAPI.Helpers
    public class AuthHelper
    {
       private readonly IConfiguration _config;
+      private readonly DataContextDapper _dapper;
+
       public AuthHelper(IConfiguration config)
       {
          _config = config;
+         _dapper = new DataContextDapper(config);
+
       }
 
 
@@ -68,5 +77,42 @@ namespace DotnetAPI.Helpers
          return tokenHandler.WriteToken(token);
 
       }
+
+      public bool setPassword(UserForLoginDto userForSetPassword)
+      {
+
+         byte[] passwordSalt = new byte[128 / 8];
+         using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
+         {
+            rng.GetNonZeroBytes(passwordSalt);
+         }
+
+         byte[] passwordHash = GetPasswordHash(userForSetPassword.Password, passwordSalt);
+         string sqlAddAuth = @"
+                        INSERT INTO TutorialAppSchema.Auth (
+                            [Email],
+                            [PasswordHash],
+                            [PasswordSalt]
+                        ) VALUES (
+                            '" + userForSetPassword.Email +
+                 "', @PasswordHash, @PasswordSalt)";
+
+         List<SqlParameter> sqlParameters = new List<SqlParameter>();
+
+         SqlParameter passwordSaltParameter = new SqlParameter("@PasswordSalt", SqlDbType.VarBinary);
+         passwordSaltParameter.Value = passwordSalt;
+
+         SqlParameter passwordHashParameter = new SqlParameter("@PasswordHash", SqlDbType.VarBinary);
+         passwordHashParameter.Value = passwordHash;
+
+         sqlParameters.Add(passwordSaltParameter);
+         sqlParameters.Add(passwordHashParameter);
+
+         return _dapper.ExecuteSqlWithParameters(sqlAddAuth, sqlParameters);
+
+
+      }
+
+
    }
 }

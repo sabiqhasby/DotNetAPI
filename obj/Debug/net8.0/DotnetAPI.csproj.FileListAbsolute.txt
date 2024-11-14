@@ -81,3 +81,6 @@ F:\CODE\C#\DotnetAPI\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.
 F:\CODE\C#\DotnetAPI\bin\Debug\net8.0\Microsoft.Extensions.Options.dll
 F:\CODE\C#\DotnetAPI\obj\Debug\net8.0\DotnetAPI.sourcelink.json
 F:\CODE\C#\DotnetAPI\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+F:\CODE\C#\DotnetAPI\bin\Debug\net8.0\DotnetAPI.staticwebassets.endpoints.json
+F:\CODE\C#\DotnetAPI\obj\Debug\net8.0\staticwebassets.build.endpoints.json
+F:\CODE\C#\DotnetAPI\obj\Debug\net8.0\staticwebassets\msbuild.DotnetAPI.Microsoft.AspNetCore.StaticWebAssetEndpoints.props

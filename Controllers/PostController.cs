@@ -16,141 +16,86 @@ namespace DotnetAPI.Controllers
          _dapper = new DataContextDapper(config);
       }
 
-      [HttpGet("Posts")]
-      public IEnumerable<Post> GetPosts()
+      [HttpGet("Posts/{postId}/{userId}/{searchParam}")]
+      public IEnumerable<Post> GetPosts(int postId = 0, int userId = 0, string searchParam = "None")
       {
          string sql = @"
-            SELECT 
-            [PostId],
-            [UserId],
-            [PostTitle],
-            [PostContent],
-            [PostCreated],
-            [PostUpdated] FROM TutorialAppSchema.Posts";
+            EXEC TutorialAppSchema.spPosts_Get";
+         string parameters = "";
 
-         return _dapper.LoadData<Post>(sql);
-      }
+         if (postId != 0)
+         {
+            parameters += ", @PostId=" + postId.ToString();
+         }
+         if (userId != 0)
+         {
+            parameters += ", @UserId=" + userId.ToString();
+         }
+         if (searchParam.ToLower() != "none")
+         {
+            parameters += ", @SearchValue='" + searchParam.ToString() + "'";
+         }
 
-      [HttpGet("Posts/{postId}")]
-      public Post GetPostSingle(int postId)
-      {
-         string sql = @"
-            SELECT 
-            [PostId],
-            [UserId],
-            [PostTitle],
-            [PostContent],
-            [PostCreated],
-            [PostUpdated] FROM TutorialAppSchema.Posts
-               WHERE PostId = " + postId.ToString();
-
-         return _dapper.LoadDataSingle<Post>(sql);
-      }
-
-      [HttpGet("PostByUser/{userId}")]
-      public IEnumerable<Post> GetPostByUser(int userId)
-      {
-         string sql = @"
-            SELECT 
-            [PostId],
-            [UserId],
-            [PostTitle],
-            [PostContent],
-            [PostCreated],
-            [PostUpdated] FROM TutorialAppSchema.Posts
-               WHERE UserId = " + userId.ToString();
-
+         if (parameters.Length > 0)
+         {
+            sql += parameters.Substring(1); //hapus koma di awal
+         }
+         Console.WriteLine(sql);
          return _dapper.LoadData<Post>(sql);
       }
 
       [HttpGet("MyPosts")]
-      public IEnumerable<Post> GetMyPost()
+      public ActionResult<IEnumerable<Post>> GetMyPost()
       {
          string sql = @"
-             SELECT [PostId],
-                    [UserId],
-                    [PostTitle],
-                    [PostContent],
-                    [PostCreated],
-                    [PostUpdated] 
-                FROM TutorialAppSchema.Posts
-                    WHERE UserId = " + this.User.FindFirst("userId")?.Value;
+        EXEC TutorialAppSchema.spPosts_Get
+        @UserId = " + this.User.FindFirst("userId")?.Value;
 
-         return _dapper.LoadData<Post>(sql);
+         IEnumerable<Post> posts = _dapper.LoadData<Post>(sql);
+
+         if (posts.Any())
+         {
+            return Ok(posts); // Kembalikan hasil post jika ada
+         }
+
+         return NotFound(new
+         {
+            Message = "Post belum dibuat"
+         });
       }
 
-      [HttpPost("Post")]
-      public async Task<IActionResult> AddPost(PostToAddDto postToAdd)
+      [HttpPut("UpsertPost")]
+      public IActionResult UpsertPost(Post postToUpsert)
       {
          string sql = @"
-         INSERT INTO TutorialAppSchema.Posts(
-             [UserId],
-             [PostTitle],
-             [PostContent],
-             [PostCreated],
-             [PostUpdated]
-         ) VALUES (
-            @UserId,
-            @PostTitle,
-            @PostContent,
-            GETDATE(),
-            GETDATE()
-         )";
+            EXEC TutorialAppSchema.spPosts_Upsert
+            @UserId =" + this.User.FindFirst("userId")?.Value +
+            ", @PostTitle = '" + postToUpsert.PostTitle +
+            "', @PostContent = '" + postToUpsert.PostContent + "'";
 
-         object parameter = new
+         if (postToUpsert.PostId > 0)
          {
-            UserId = this.User.FindFirst("userId")?.Value, //ambil dari token
-            postToAdd.PostTitle,
-            postToAdd.PostContent
-         };
-         bool success = await _dapper.ExecuteSqlAsync(sql, parameter);
+            sql += ", @PostId = " + postToUpsert.PostId;
+         }
+
+         bool success = _dapper.ExecuteSql(sql);
          if (success)
          {
-            return Ok(postToAdd);
+            return Ok(postToUpsert);
          }
-         throw new Exception("Failed to create new Post!");
+         throw new Exception("Failed to upsert Post!");
       }
-      [HttpPut("Post")]
-      public async Task<IActionResult> EditPost(PostToEditDto postToEdit)
-      {
-         string sql = @"
-         UPDATE TutorialAppSchema.Posts
-            SET 
-             [PostTitle] = @PostTitle,
-             [PostContent] = @PostContent,
-             [PostUpdated] = GETDATE()
-            WHERE PostId = @PostId
-            AND UserId = @UserId
-        ";
 
-         object parameter = new
-         {
-            postToEdit.PostTitle,
-            postToEdit.PostContent,
-            postToEdit.PostId, //ambil dari token
-            UserId = this.User.FindFirst("userId")?.Value, //ambil dari token
-         };
-         bool success = await _dapper.ExecuteSqlAsync(sql, parameter);
-         if (success)
-         {
-            return Ok(postToEdit);
-         }
-         throw new Exception("Failed to Edit Post!");
-      }
 
       [HttpDelete("Post/{postId}")]
-      public async Task<IActionResult> DeletePost(int postId)
+      public IActionResult DeletePost(int postId)
       {
          string sql = @"
-            DELETE FROM TutorialAppSchema.Posts 
-            WHERE PostId = @PostId
-            AND UserId = @UserId";
+            EXEC TutorialAppSchema.spPosts_Delete 
+            @PostId = " + postId +
+            ", @UserId = " + this.User.FindFirst("userId")?.Value;
 
-         bool success = await _dapper.ExecuteSqlAsync(sql, new
-         {
-            PostId = postId,
-            UserId = this.User.FindFirst("userId")?.Value, //ambil dari token
-         });
+         bool success = _dapper.ExecuteSql(sql);
          if (success)
          {
             return Ok("deleted");
