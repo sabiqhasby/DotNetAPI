@@ -124,17 +124,12 @@ namespace DotnetAPI.Controllers
       public async Task<IActionResult> Login(UserForLoginDto userLogin)
       {
          string sqlForHashAndSalt = @"
-               SELECT
-                [PasswordHash],
-                [PasswordSalt] 
-               FROM TutorialAppSchema.Auth WHERE Email = @Email";
-
-         //UserForLoginConfirmationDto userForLoginConfirm = _dapper
-         //    .LoadDataSingle<UserForLoginConfirmationDto>(sqlForHashAndSalt);
+               EXEC TutorialAppSchema.spLoginConfirmation_Get
+               @Email = @EmailParam";
 
          var parameters = new
          {
-            userLogin.Email,
+            EmailParam = userLogin.Email,
          };
 
          UserForLoginConfirmationDto? userForLoginConfirm = await _dapper
@@ -147,15 +142,6 @@ namespace DotnetAPI.Controllers
 
          byte[] passwordHash = _authHelper.GetPasswordHash(userLogin.Password, userForLoginConfirm.PasswordSalt);
 
-         //if (passwordHash == userForLoginConfirm.PasswordHash) { } // WONT WORK, karena memori tersimpan di berbeda tempat
-
-         //for (int i = 0; i < passwordHash.Length; i++)
-         //{
-         //    if (passwordHash[i] != userForLoginConfirm.PasswordHash[i])
-         //    {
-         //        return StatusCode(401, "Incorect Passsword!");
-         //    }
-         //}
 
          //BANDINGKAN JIKA TIDAK SAMA MAKA...401
          if (!passwordHash.SequenceEqual(userForLoginConfirm.PasswordHash))
@@ -163,9 +149,9 @@ namespace DotnetAPI.Controllers
             return StatusCode(401, "Incorrect Password!");
          }
 
-         string userIdSql = "SELECT * FROM TutorialAppSchema.Users WHERE Email = @Email";
+         string userIdSql = "SELECT * FROM TutorialAppSchema.Users WHERE Email = @EmailParam";
 
-         int userId = await _dapper.LoadDataSingleAsync<int>(userIdSql, new { userLogin.Email });
+         int userId = await _dapper.LoadDataSingleAsync<int>(userIdSql, new { EmailParam = userLogin.Email });
 
          return Ok(new Dictionary<string, string>{
             { "token", _authHelper.CreateToken(userId)}

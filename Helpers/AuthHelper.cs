@@ -1,7 +1,7 @@
+using Dapper;
 using DotnetAPI.Data;
 using DotnetAPI.Dtos;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using System.Data;
 using System.IdentityModel.Tokens.Jwt;
@@ -94,21 +94,26 @@ namespace DotnetAPI.Helpers
                             [PasswordHash],
                             [PasswordSalt]
                         ) VALUES (
-                            '" + userForSetPassword.Email +
-                 "', @PasswordHash, @PasswordSalt)";
+                            @EmailParam, @PasswordHash, @PasswordSalt)";
 
-         List<SqlParameter> sqlParameters = new List<SqlParameter>();
+         //List<SqlParameter> sqlParameters = new List<SqlParameter>();
 
-         SqlParameter passwordSaltParameter = new SqlParameter("@PasswordSalt", SqlDbType.VarBinary);
-         passwordSaltParameter.Value = passwordSalt;
+         //SqlParameter passwordSaltParameter = new SqlParameter("@PasswordSalt", SqlDbType.VarBinary);
+         //passwordSaltParameter.Value = passwordSalt;
 
-         SqlParameter passwordHashParameter = new SqlParameter("@PasswordHash", SqlDbType.VarBinary);
-         passwordHashParameter.Value = passwordHash;
+         //SqlParameter passwordHashParameter = new SqlParameter("@PasswordHash", SqlDbType.VarBinary);
+         //passwordHashParameter.Value = passwordHash;
 
-         sqlParameters.Add(passwordSaltParameter);
-         sqlParameters.Add(passwordHashParameter);
+         //sqlParameters.Add(passwordSaltParameter);
+         //sqlParameters.Add(passwordHashParameter);
 
-         return _dapper.ExecuteSqlWithParameters(sqlAddAuth, sqlParameters);
+         DynamicParameters sqlParameters = new DynamicParameters();
+         sqlParameters.Add("@EmailParam", passwordSalt, DbType.String);
+         sqlParameters.Add("@PasswordHash", passwordHash, DbType.Binary);
+         sqlParameters.Add("@PasswordSalt", passwordSalt, DbType.Binary);
+
+
+         return _dapper.ExecuteSqlDynamic(sqlAddAuth, sqlParameters);
 
 
       }
